@@ -4,10 +4,13 @@ import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import { UseWalletProvider } from "use-wallet";
+import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from "react-toastify";
 
 ReactDOM.render(
   <React.StrictMode>
     <UseWalletProvider>
+      <ToastContainer />
       <App />
     </UseWalletProvider>
   </React.StrictMode>,

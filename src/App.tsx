@@ -1,7 +1,8 @@
 import { Box, Button, Container, Tab, Tabs, Typography } from "@mui/material";
-import React, { Fragment } from "react";
+import React from "react";
 import "./App.css";
-import { useWallet, UseWalletProvider } from "use-wallet";
+import { useWallet } from "use-wallet";
+import MintForm from "./forms/mint-form";
 
 function App() {
   const [value, setValue] = React.useState(0);
@@ -31,7 +32,7 @@ function App() {
       >
         {value === index && (
           <Box sx={{ p: 3 }}>
-            <Typography>{children}</Typography>
+            {children}
           </Box>
         )}
       </div>
@@ -72,7 +73,7 @@ function App() {
         </Tabs>
       </Box>
       <TabPanel value={value} index={0}>
-        Item One
+        <MintForm />
       </TabPanel>
       <TabPanel value={value} index={1}>
         Item Two
