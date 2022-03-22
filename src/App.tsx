@@ -1,25 +1,89 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { Box, Button, Container, Tab, Tabs, Typography } from "@mui/material";
+import React, { Fragment } from "react";
+import "./App.css";
+import { useWallet, UseWalletProvider } from "use-wallet";
 
 function App() {
+  const [value, setValue] = React.useState(0);
+
+  const wallet = useWallet();
+
+  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+    setValue(newValue);
+  };
+
+  interface TabPanelProps {
+    children?: React.ReactNode;
+    index: number;
+    value: number;
+  }
+
+  const TabPanel = (props: TabPanelProps) => {
+    const { children, value, index, ...other } = props;
+
+    return (
+      <div
+        role="tabpanel"
+        hidden={value !== index}
+        id={`simple-tabpanel-${index}`}
+        aria-labelledby={`simple-tab-${index}`}
+        {...other}
+      >
+        {value === index && (
+          <Box sx={{ p: 3 }}>
+            <Typography>{children}</Typography>
+          </Box>
+        )}
+      </div>
+    );
+  };
+
+  const a11yProps = (index: number) => {
+    return {
+      id: `simple-tab-${index}`,
+      "aria-controls": `simple-tabpanel-${index}`,
+    };
+  };
+
+  const ConnectWallet = () => {
+    return (
+      <Box style={{paddingTop: "10px", display: "flex", gap: "10px"}}>
+        <Button variant="outlined" disabled={wallet.status === "connected"} onClick={() => wallet.connect('provided')}>
+          {wallet.status === "connected"
+            ? wallet?.account
+            : "Click here to connect Wallet"}
+        </Button>
+        <Button variant="outlined" disabled={wallet.status !== "connected"} onClick={() => wallet.reset()}>
+          Disconnect
+        </Button>
+      </Box>
+    );
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Container maxWidth="md">
+      <ConnectWallet />
+      <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+        <Tabs value={value} onChange={handleChange} aria-label="Tabs">
+          <Tab label="MINT" {...a11yProps(0)} />
+          <Tab label="SELL" {...a11yProps(1)} />
+          <Tab label="BUY" {...a11yProps(2)} />
+          <Tab label="LOAN" {...a11yProps(3)} />
+        </Tabs>
+      </Box>
+      <TabPanel value={value} index={0}>
+        Item One
+      </TabPanel>
+      <TabPanel value={value} index={1}>
+        Item Two
+      </TabPanel>
+      <TabPanel value={value} index={2}>
+        Item Three
+      </TabPanel>
+      <TabPanel value={value} index={2}>
+        Item Four
+      </TabPanel>
+    </Container>
   );
 }
 
