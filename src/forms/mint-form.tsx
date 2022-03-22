@@ -6,19 +6,19 @@ import { toast } from "react-toastify";
 export interface MintFormState {
   uri: string;
   price: number;
-  feeAddresses: Array<string>;
-  feePercentages: Array<number>;
-  royaltyAddresses: Array<string>;
-  royaltyPercentages: Array<number>;
+  feeAddresses: string;
+  feePercentages: string;
+  royaltyAddresses: string;
+  royaltyPercentages: string;
 }
 const MintForm = () => {
   const [formState, setFormState] = useState<MintFormState>({
     uri: "",
     price: 0,
-    feeAddresses: [],
-    feePercentages: [],
-    royaltyAddresses: [],
-    royaltyPercentages: [],
+    feeAddresses: "",
+    feePercentages: "",
+    royaltyAddresses: "",
+    royaltyPercentages: "",
   });
   const [showLoading, setShowLoading] = useState(false);
 
@@ -26,6 +26,14 @@ const MintForm = () => {
   const [uriError, setUriError] = useState("");
   const [isPriceError, setIsPriceError] = useState(false);
   const [priceError, setPriceError] = useState("");
+
+  const handleTextAreaChange= (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+      console.log(event.target);
+    setFormState({
+        ...formState,
+        [event.target.name]: event.target.value,
+      });
+  }
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setFormState({
@@ -56,6 +64,62 @@ const MintForm = () => {
     return false;
   };
 
+  const validateRoyaltyAddresses = () => {
+    const royaltyAddresses = formState.royaltyAddresses.split(",");
+    const royaltyPercentages = formState.royaltyPercentages.split(",");
+
+    if(royaltyAddresses.length === 0 || royaltyAddresses[0].length === 0) {
+      toast.error("Royalty address can not be empty");
+      return;
+    }
+
+    if(royaltyPercentages.length === 0 || royaltyPercentages[0].length === 0) {
+      toast.error("Royalty share percentages can not be empty");
+      return;
+    }      
+
+    if(royaltyAddresses.length != royaltyPercentages.length) {
+        toast.error("Royalties and Percentages not the same length - " + royaltyAddresses.length + " : " + royaltyPercentages.length);
+        return false;
+    }
+
+    let sum = royaltyPercentages.map(el => +el).reduce((el, sum) => sum += el);
+    if(sum !== 100) {
+      toast.error("Sum of Royalty percentages must equal 100");
+      return false;
+    }
+    return true;
+  }
+
+  const validateFeeAddresses = () => {
+      const feeAddresses = formState.feeAddresses.split(",");
+      const feePercentages = formState.feePercentages.split(",");
+
+      console.log("feeAddresses: ", feeAddresses);
+
+      if(feeAddresses.length === 0 || feeAddresses[0].length === 0) {
+        toast.error("Owner address can not be empty");
+        return;
+      }
+
+      if(feePercentages.length === 0 || feePercentages[0].length === 0) {
+        toast.error("Owner share percentages can not be empty");
+        return;
+      }      
+
+      if(feeAddresses.length != feePercentages.length) {
+          toast.error("Owners and Percentages not the same length - " + feeAddresses.length + " : " + feePercentages.length);
+          return false;
+      }
+
+      let sum = feePercentages.map(el => +el).reduce((el, sum) => sum += el);
+      if(sum !== 100) {
+        toast.error("Sum of Fee percentages must equal 100");
+        return false;
+      }
+      return true;
+  }
+
   const validate = async () => {
     resetErrors();
     toast.info("Checking URI...." + formState.uri);
@@ -71,6 +135,20 @@ const MintForm = () => {
         return;
     }
     toast.info("URI is valid");
+
+    if(formState.price < 1) {
+        setPriceError("Price can not be less than one");
+        setIsPriceError(true);
+        return;
+    }
+
+    if(!validateFeeAddresses()) {
+        return;
+    }
+
+    if(!validateRoyaltyAddresses()) {
+        return;
+    }    
   };
 
   const mint = () => {
@@ -99,7 +177,7 @@ const MintForm = () => {
           <TextField
             name="price"
             type="price"
-            label="Price"
+            label="Price (in iCW token)"
             defaultValue={formState.price}
             fullWidth
             margin="dense"
@@ -119,7 +197,8 @@ const MintForm = () => {
             minRows={3}
             placeholder="Owner Addreses: the price is shared among these addreses"
             style={{ width: "100%" }}
-            defaultValue={formState.feeAddresses.join(",")}
+            defaultValue={formState.feeAddresses}
+            onChange={handleTextAreaChange}
           />
         </Grid>
 
@@ -130,12 +209,13 @@ const MintForm = () => {
         </Grid>
         <Grid item xs={12}>
           <TextareaAutosize
-            name="feePercetanges"
+            name="feePercentages"
             aria-label="owners percentages"
             minRows={3}
             placeholder="Owner Percentages: the price is shared using these percentages"
             style={{ width: "100%" }}
-            defaultValue={formState.feePercentages.join(",")}
+            defaultValue={formState.feePercentages}
+            onChange={handleTextAreaChange}
           />
         </Grid>
 
@@ -151,7 +231,8 @@ const MintForm = () => {
             minRows={3}
             placeholder="Royalty Addreses: the royalty (20%) is shared among these addreses"
             style={{ width: "100%" }}
-            defaultValue={formState.royaltyAddresses.join(",")}
+            defaultValue={formState.royaltyAddresses}
+            onChange={handleTextAreaChange}
           />
         </Grid>
 
@@ -167,7 +248,8 @@ const MintForm = () => {
             minRows={3}
             placeholder="Royalty Percentages: the royalty (20%) is shared using these percentages"
             style={{ width: "100%" }}
-            defaultValue={formState.royaltyPercentages.join(",")}
+            defaultValue={formState.royaltyPercentages}
+            onChange={handleTextAreaChange}
           />
         </Grid>
         <Grid item xs={12}>
