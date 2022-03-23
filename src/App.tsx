@@ -3,6 +3,7 @@ import React from "react";
 import "./App.css";
 import { useWallet } from "use-wallet";
 import MintForm from "./forms/mint-form";
+import SendForm from "./forms/send-form";
 
 function App() {
   const [value, setValue] = React.useState(0);
@@ -62,7 +63,7 @@ function App() {
   };
 
   return (
-    <Container maxWidth="md">
+    <Container maxWidth="lg">
       <ConnectWallet />
       <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
         <Tabs value={value} onChange={handleChange} aria-label="Tabs">
@@ -76,7 +77,7 @@ function App() {
         <MintForm />
       </TabPanel>
       <TabPanel value={value} index={1}>
-        Item Two
+        <SendForm />
       </TabPanel>
       <TabPanel value={value} index={2}>
         Item Three

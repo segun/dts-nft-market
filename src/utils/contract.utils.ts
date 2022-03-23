@@ -1,6 +1,7 @@
 import Loans from "../contract-abis/Loans.json";
 import Auctions from "../contract-abis/Auctions.json";
 import NFTMarket from "../contract-abis/NFTMarket.json";
+import Nft from "../contract-abis/ERC721Standard.json";
 
 import { ethers } from "ethers";
 
@@ -18,6 +19,12 @@ export const getLoanContract = (address: string, ethereum: any) => {
   const abi = Loans.abi;
   return getContract(address, ethereum, abi);
 };
+
+export const getNftContract = (address: string, ethereum: any) => {
+  const abi = Nft.abi;
+  return getContract(address, ethereum, abi);
+};
+
 
 const getContract = (address: string, ethereum: any, abi: any) => {
   const provider = new ethers.providers.Web3Provider(ethereum); //providers.Web3Provider(web3.currentProvider);
