@@ -3,7 +3,8 @@ import React from "react";
 import "./App.css";
 import { useWallet } from "use-wallet";
 import MintForm from "./forms/mint-form";
-import SendForm from "./forms/send-form";
+import BuyPage from "./pages/buy-page";
+import OwnedTokensPage from "./pages/owned-tokens-page";
 
 function App() {
   const [value, setValue] = React.useState(0);
@@ -31,11 +32,7 @@ function App() {
         aria-labelledby={`simple-tab-${index}`}
         {...other}
       >
-        {value === index && (
-          <Box sx={{ p: 3 }}>
-            {children}
-          </Box>
-        )}
+        {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
       </div>
     );
   };
@@ -49,13 +46,21 @@ function App() {
 
   const ConnectWallet = () => {
     return (
-      <Box style={{paddingTop: "10px", display: "flex", gap: "10px"}}>
-        <Button variant="outlined" disabled={wallet.status === "connected"} onClick={() => wallet.connect('provided')}>
+      <Box style={{ paddingTop: "10px", display: "flex", gap: "10px" }}>
+        <Button
+          variant="outlined"
+          disabled={wallet.status === "connected"}
+          onClick={() => wallet.connect("provided")}
+        >
           {wallet.status === "connected"
             ? wallet?.account
             : "Click here to connect Wallet"}
         </Button>
-        <Button variant="outlined" disabled={wallet.status !== "connected"} onClick={() => wallet.reset()}>
+        <Button
+          variant="outlined"
+          disabled={wallet.status !== "connected"}
+          onClick={() => wallet.reset()}
+        >
           Disconnect
         </Button>
       </Box>
@@ -67,22 +72,26 @@ function App() {
       <ConnectWallet />
       <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
         <Tabs value={value} onChange={handleChange} aria-label="Tabs">
-          <Tab label="MINT" {...a11yProps(0)} />
-          <Tab label="SELL" {...a11yProps(1)} />
-          <Tab label="BUY" {...a11yProps(2)} />
-          <Tab label="LOAN" {...a11yProps(3)} />
+          <Tab label="UPLOAD" {...a11yProps(0)} />
+          <Tab label="MINT" {...a11yProps(1)} />
+          <Tab label="SELL" {...a11yProps(2)} />
+          <Tab label="BUY" {...a11yProps(3)} />
+          <Tab label="LOAN" {...a11yProps(4)} />
         </Tabs>
       </Box>
       <TabPanel value={value} index={0}>
-        <MintForm />
+        Upload Image to IPFS and Create JSON Metadata
       </TabPanel>
       <TabPanel value={value} index={1}>
-        <SendForm />
+        <MintForm />
       </TabPanel>
       <TabPanel value={value} index={2}>
-        Item Three
+        <OwnedTokensPage />
       </TabPanel>
-      <TabPanel value={value} index={2}>
+      <TabPanel value={value} index={3}>
+        <BuyPage />
+      </TabPanel>
+      <TabPanel value={value} index={4}>
         Item Four
       </TabPanel>
     </Container>

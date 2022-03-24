@@ -11,39 +11,25 @@ import {
 import { ethers } from "ethers";
 import React, { Fragment, useEffect, useState } from "react";
 import { useWallet } from "use-wallet";
+import LoadingComponent from "../components/loading";
 import SaleDialog from "../dialogs/sale-dialog";
 import { getNftContract, getNFTMarketContract } from "../utils/contract.utils";
+import { Column, TokenData } from "../utils/dtos";
 
 const nftContractAddress = process.env.REACT_APP_ICW_NFT as string;
 const nftMarketContractAddress = process.env
   .REACT_APP_NFT_MARKET_CONTRACT_ADDRESS as string;
 
-interface Column {
-  id: string;
-  label: string;
-}
-
-interface Data {
-  forSale: string;
-  forAuction: string;
-  forLoan: string;
-  onLoan: string;
-  tokenId: number;
-  price: string;
-  minter: string;
-  owner: string;
-  uri: string;
-}
-
-const SendForm = () => {
+const OwnedTokensPage = () => {
   const wallet = useWallet();
-  const [userTokens, setUserTokens] = useState<Array<Data>>([]);
+  const [showLoading, setShowLoading] = useState(false);
+  const [userTokens, setUserTokens] = useState<Array<TokenData>>([]);
 
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
   const [showSaleDialog, setShowSaleDialog] = React.useState(false);
-  const [tokenData, setTokenData] = React.useState<Data>();
+  const [selectedToken, setSelectedToken] = React.useState<TokenData>();
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
@@ -67,6 +53,7 @@ const SendForm = () => {
   useEffect(() => {
     const populateUserTokens = async () => {
       if (wallet.isConnected()) {
+        setShowLoading(true);
         const nftMarket = getNFTMarketContract(
           nftMarketContractAddress,
           wallet.ethereum
@@ -81,7 +68,7 @@ const SendForm = () => {
               tokenId.toNumber()
             );
 
-            const tokenInfo: Data = {
+            const tokenInfo: TokenData = {
               forAuction: blockTokenInfo.forAuction,
               forLoan: blockTokenInfo.forLoan,
               forSale: blockTokenInfo.forSale ? "yes" : "no",
@@ -90,13 +77,15 @@ const SendForm = () => {
               owner: blockTokenInfo.owner,
               price: ethers.utils.formatEther(blockTokenInfo.price),
               tokenId: blockTokenInfo.tokenId.toNumber(),
-              uri: "",
+              metadata: {}
             };
             tokenInfos.push(tokenInfo);
           }
 
           setUserTokens(tokenInfos);
         }
+
+        setShowLoading(false);
       }
     };
 
@@ -108,15 +97,16 @@ const SendForm = () => {
   };
 
   const selectTokenData = (tokenData) => {
-    setTokenData(tokenData);
+    setSelectedToken(tokenData);
     setShowSaleDialog(true);
   };
 
   return (
     <Fragment>
-      {tokenData && (
+      <LoadingComponent open={showLoading} />      
+      {selectedToken && (
         <SaleDialog
-          data={tokenData}
+          data={selectedToken}
           open={showSaleDialog}
           handleClose={handleSalesDataClose}
         />
@@ -179,4 +169,4 @@ const SendForm = () => {
   );
 };
 
-export default SendForm;
+export default OwnedTokensPage;

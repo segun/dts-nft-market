@@ -355,7 +355,7 @@ const MintForm = () => {
           <TextField
             name="uri"
             type="url"
-            label="Token URI"
+            label="Metadata URI"
             defaultValue={formState.uri}
             fullWidth
             margin="dense"
