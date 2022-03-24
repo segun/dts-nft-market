@@ -30,13 +30,14 @@ export interface MintFormState {
   royaltyPercentages?: string;
 }
 
-const loanContractAddress = process.env
-  .REACT_APP_LOAN_CONTRACT_ADDRESS as string;
-const auctionContractAddress = process.env
-  .REACT_APP_AUCTION_CONTRACT_ADDRESS as string;
+// const loanContractAddress = process.env
+//   .REACT_APP_LOAN_CONTRACT_ADDRESS as string;
+// const auctionContractAddress = process.env
+//   .REACT_APP_AUCTION_CONTRACT_ADDRESS as string;
+// const icwContractAddress = process.env.REACT_APP_ICW_CONTRACT_ADDRESS as string;
+
 const nftMarketContractAddress = process.env
   .REACT_APP_NFT_MARKET_CONTRACT_ADDRESS as string;
-const icwContractAddress = process.env.REACT_APP_ICW_CONTRACT_ADDRESS as string;
 
 const onUploadProgress = (progress, { loaded, total }) => {
   toast(`Saving into DB...${Math.round(progress * 100)}%`);
@@ -71,7 +72,7 @@ const saveNft = async (nft: NftData) => {
   return false;
 };
 
-const MintForm = () => {  
+const MintForm = () => {
   const [formState, setFormState] = useState<MintFormState>({});
   const [showLoading, setShowLoading] = useState(false);
 
@@ -83,49 +84,53 @@ const MintForm = () => {
   const wallet = useWallet();
   const walletStateContext = useContext(WalletStateContext);
 
-  const addGnosisChainNetwork = async () => {
-    const chainId = process.env.REACT_APP_CHAIN_ID as string;
-    const chainName = process.env.REACT_APP_CHAIN_NAME as string;
-    const symbol = process.env.REACT_APP_CHAIN_SYMBOL as string;
-    const rpcUrl = process.env.REACT_APP_CHAIN_RPC_URL as string;
-    const explorerUrl = process.env.REACT_APP_CHAIN_EXPLORER_URL as string;
-    try {
-      await wallet.ethereum.request({
-        method: "wallet_switchEthereumChain",
-        params: [{ chainId: chainId }], // Hexadecimal version of 80001, prefixed with 0x
-      });
-    } catch (error: any) {
-      if (error.code === 4902) {
-        try {
-          await wallet.ethereum.request({
-            method: "wallet_addEthereumChain",
-            params: [
-              {
-                chainId: chainId, // Hexadecimal version of 80001, prefixed with 0x
-                chainName: chainName,
-                nativeCurrency: {
-                  name: chainName,
-                  symbol: symbol,
-                  decimals: 18,
+  React.useEffect(() => {
+    const addGnosisChainNetwork = async () => {
+      const chainId = process.env.REACT_APP_CHAIN_ID as string;
+      const chainName = process.env.REACT_APP_CHAIN_NAME as string;
+      const symbol = process.env.REACT_APP_CHAIN_SYMBOL as string;
+      const rpcUrl = process.env.REACT_APP_CHAIN_RPC_URL as string;
+      const explorerUrl = process.env.REACT_APP_CHAIN_EXPLORER_URL as string;
+      try {
+        await wallet.ethereum.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: chainId }], // Hexadecimal version of 80001, prefixed with 0x
+        });
+      } catch (error: any) {
+        if (error.code === 4902) {
+          try {
+            await wallet.ethereum.request({
+              method: "wallet_addEthereumChain",
+              params: [
+                {
+                  chainId: chainId, // Hexadecimal version of 80001, prefixed with 0x
+                  chainName: chainName,
+                  nativeCurrency: {
+                    name: chainName,
+                    symbol: symbol,
+                    decimals: 18,
+                  },
+                  rpcUrls: [rpcUrl],
+                  blockExplorerUrls: [explorerUrl],
+                  iconUrls: [""],
                 },
-                rpcUrls: [rpcUrl],
-                blockExplorerUrls: [explorerUrl],
-                iconUrls: [""],
-              },
-            ],
-          });
-        } catch (addError) {
-          console.log("Did not add network");
+              ],
+            });
+          } catch (addError) {
+            console.log("Did not add network");
+          }
         }
       }
-    }
-  };
+    };
 
-  React.useEffect(() => {
-    if (wallet.isConnected && wallet.status === "connected" && wallet.chainId !== +process.env.NEXT_PUBLIC_CHAIN_ID) {
+    if (
+      wallet.isConnected &&
+      wallet.status === "connected" &&
+      wallet.chainId !== +process.env.NEXT_PUBLIC_CHAIN_ID
+    ) {
       addGnosisChainNetwork();
     }
-  }, [wallet.status]);  
+  }, [wallet.status, wallet]);
 
   const handleTextAreaChange = (
     event: React.ChangeEvent<HTMLTextAreaElement>
@@ -175,7 +180,7 @@ const MintForm = () => {
       return;
     }
 
-    if (royaltyAddresses.length != royaltyPercentages.length) {
+    if (royaltyAddresses.length !== royaltyPercentages.length) {
       toast.error(
         "Royalties and Percentages not the same length - " +
           royaltyAddresses.length +
@@ -209,7 +214,7 @@ const MintForm = () => {
       return;
     }
 
-    if (feeAddresses.length != feePercentages.length) {
+    if (feeAddresses.length !== feePercentages.length) {
       toast.error(
         "Owners and Percentages not the same length - " +
           feeAddresses.length +
@@ -231,8 +236,6 @@ const MintForm = () => {
     const relevantTransferEvent = txReceipt.events.find(
       (e) => e.event === "Minted"
     );
-
-    console.log("relevantTransferEvent: ", relevantTransferEvent.args);
 
     const tokenId = relevantTransferEvent.args.tokenId.toNumber();
     const address = relevantTransferEvent.args.to;
@@ -273,75 +276,75 @@ const MintForm = () => {
   };
 
   const mint = async () => {
-    try {    
+    try {
       setShowLoading(true);
-    if (await validate()) {
-      if (wallet.isConnected()) {        
-        const nftMarket = getNFTMarketContract(
-          nftMarketContractAddress,
-          wallet.ethereum
-        );
-        toast("Minting....");
-        const mintTxPromise = nftMarket.mint(
-          formState.uri,
-          formState.price,
-          formState.feeAddresses.split(","),
-          formState.feePercentages.split(","),
-          formState.royaltyAddresses.split(","),
-          formState.royaltyPercentages.split(",")
-        );
-
-        walletStateContext.addNewQueuedTx(
-          mintTxPromise,
-          "Minting NFT Market",
-          {}
-        );
-
-        const mintTx = await mintTxPromise;
-        const mintTxExecuted = await mintTx.wait(1);
-
-        const isMined = await isTransactionMined(
-          wallet.ethereum,
-          mintTxExecuted.transactionHash,
-          +(process.env.REACT_APP_TX_WAIT_BLOCK_COUNT as string)
-        );
-
-        if (!isMined) {
-          toast.error(
-            `Transaction not found after ${
-              process.env.REACT_APP_TX_WAIT_BLOCK_COUNT as string
-            } blocks`
+      if (await validate()) {
+        if (wallet.isConnected()) {
+          const nftMarket = getNFTMarketContract(
+            nftMarketContractAddress,
+            wallet.ethereum
           );
-        } else {
-          const { tokenId, address } =
-            getMintedTokenIdFromTransactionReceipt(mintTxExecuted);
+          toast("Minting....");
+          const mintTxPromise = nftMarket.mint(
+            formState.uri,
+            formState.price,
+            formState.feeAddresses.split(","),
+            formState.feePercentages.split(","),
+            formState.royaltyAddresses.split(","),
+            formState.royaltyPercentages.split(",")
+          );
 
-          if (address !== wallet.account) {
-            throw Error("Account and Wallet Address Minted not the same");
+          walletStateContext.addNewQueuedTx(
+            mintTxPromise,
+            "Minting NFT Market",
+            {}
+          );
+
+          const mintTx = await mintTxPromise;
+          const mintTxExecuted = await mintTx.wait(1);
+
+          const isMined = await isTransactionMined(
+            wallet.ethereum,
+            mintTxExecuted.transactionHash,
+            +(process.env.REACT_APP_TX_WAIT_BLOCK_COUNT as string)
+          );
+
+          if (!isMined) {
+            toast.error(
+              `Transaction not found after ${
+                process.env.REACT_APP_TX_WAIT_BLOCK_COUNT as string
+              } blocks`
+            );
+          } else {
+            const { tokenId, address } =
+              getMintedTokenIdFromTransactionReceipt(mintTxExecuted);
+
+            if (address !== wallet.account) {
+              throw Error("Account and Wallet Address Minted not the same");
+            }
+
+            toast.success(
+              "NFT Minted Successfully. Check your wallet for the token"
+            );
+
+            toast("Cleaning up...");
+
+            await saveNft({
+              tokenId: tokenId,
+              owner: address,
+            });
+
+            toast(`New Token Minted: ${tokenId}`);
           }
-
-          toast.success(
-            "NFT Minted Successfully. Check your wallet for the token"
-          );
-
-          toast("Cleaning up...");
-
-          await saveNft({
-            tokenId: tokenId,
-            owner: address,
-          });
-
-          toast(`New Token Minted: ${tokenId}`);
+        } else {
+          toast.error("Wallet is not connected");
         }
-      } else {
-        toast.error("Wallet is not connected");
       }
+    } catch (error) {
+      toast(`Error occured during minting: ${error}`);
+    } finally {
+      setShowLoading(false);
     }
-  }catch(error) {
-    toast(`Error occured during minting: ${error}`);
-  } finally {
-    setShowLoading(false);
-  }
   };
 
   return (

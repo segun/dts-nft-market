@@ -1,10 +1,7 @@
 import * as React from "react";
 import Backdrop from "@mui/material/Backdrop";
 import CircularProgress from "@mui/material/CircularProgress";
-
-export interface DialogProps {
-  open: boolean;
-}
+import { DialogProps } from "@mui/material";
 
 const LoadingComponent = (props: DialogProps) => {
   const { open } = props;

@@ -1,4 +1,4 @@
-import { Box, Button, Container, Tab, Tabs, Typography } from "@mui/material";
+import { Box, Button, Container, Tab, Tabs } from "@mui/material";
 import React from "react";
 import "./App.css";
 import { useWallet } from "use-wallet";

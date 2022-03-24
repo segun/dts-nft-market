@@ -11,6 +11,7 @@ import {
 import { ethers } from "ethers";
 import React, { Fragment, useEffect, useState } from "react";
 import { useWallet } from "use-wallet";
+import SaleDialog from "../dialogs/sale-dialog";
 import { getNftContract, getNFTMarketContract } from "../utils/contract.utils";
 
 const nftContractAddress = process.env.REACT_APP_ICW_NFT as string;
@@ -41,6 +42,9 @@ const SendForm = () => {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
+  const [showSaleDialog, setShowSaleDialog] = React.useState(false);
+  const [tokenData, setTokenData] = React.useState<Data>();
+
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
   };
@@ -61,7 +65,6 @@ const SendForm = () => {
   ];
 
   useEffect(() => {
-    let isMounted = true;
     const populateUserTokens = async () => {
       if (wallet.isConnected()) {
         const nftMarket = getNFTMarketContract(
@@ -95,66 +98,84 @@ const SendForm = () => {
           setUserTokens(tokenInfos);
         }
       }
-
-      return () => {
-        isMounted = false;
-      };
     };
 
     populateUserTokens();
-  }, [wallet.status]);
+  }, [wallet.status, wallet]);
+
+  const handleSalesDataClose = () => {
+    setShowSaleDialog(false);
+  };
+
+  const selectTokenData = (tokenData) => {
+    setTokenData(tokenData);
+    setShowSaleDialog(true);
+  };
+
   return (
-    <Paper sx={{ width: "100%", overflow: "hidden" }}>
-      <TableContainer sx={{ maxHeight: 440 }}>
-        <Table stickyHeader aria-label="sticky table">
-          <TableHead>
-            <TableRow>
-              {columns.map((column) => (
-                <TableCell
-                  key={column.id}
-                  align="center"
-                  style={{ minWidth: "auto" }}
-                >
-                  {column.label}
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {userTokens
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((row) => {
-                return (
-                  <TableRow
-                    hover
-                    role="checkbox"
-                    tabIndex={-1}
-                    key={row.tokenId}
+    <Fragment>
+      {tokenData && (
+        <SaleDialog
+          data={tokenData}
+          open={showSaleDialog}
+          handleClose={handleSalesDataClose}
+        />
+      )}
+      <Paper sx={{ width: "100%", overflow: "hidden" }}>
+        <TableContainer sx={{ maxHeight: 440 }}>
+          <Table stickyHeader aria-label="sticky table">
+            <TableHead>
+              <TableRow>
+                {columns.map((column) => (
+                  <TableCell
+                    key={column.id}
+                    align="center"
+                    style={{ minWidth: "auto" }}
                   >
-                    {columns.map((column) => {
-                      const value = row[column.id];
-                      return (
-                        <TableCell key={column.id} align="center">
-                          {value}
-                        </TableCell>
-                      );
-                    })}
-                  </TableRow>
-                );
-              })}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      <TablePagination
-        rowsPerPageOptions={[10, 25, 100]}
-        component="div"
-        count={userTokens.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-      />
-    </Paper>
+                    {column.label}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {userTokens
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((row) => {
+                  return (
+                    <TableRow
+                      hover
+                      onClick={() => {
+                        selectTokenData(row);
+                      }}
+                      role="checkbox"
+                      tabIndex={-1}
+                      key={row.tokenId}
+                    >
+                      {columns.map((column) => {
+                        const value = row[column.id];
+                        return (
+                          <TableCell key={column.id} align="center">
+                            {value}
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                  );
+                })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <TablePagination
+          rowsPerPageOptions={[10, 25, 100]}
+          component="div"
+          count={userTokens.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
+      </Paper>
+    </Fragment>
   );
 };
 
